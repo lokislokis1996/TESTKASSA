@@ -1,4 +1,4 @@
-Тест для Кассира!
+Касса Тест!
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -7,15 +7,22 @@
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
         .container { max-width: 650px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { font-size: 20px; color: #1a568c; text-align: center; margin-top: 0; margin-bottom: 20px; }
+        h1 { font-size: 20px; color: #1a568c; text-align: center; margin-top: 0; margin-bottom: 15px; }
         
+        /* Таймер и Статистика */
+        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 15px; font-weight: bold; }
+        .timer { color: #d9534f; background: #fdf2f2; padding: 5px 12px; border-radius: 6px; border: 1px solid #f5c6cb; }
+        .stats { color: #666; }
+
+        /* Прогресс-бар */
         .progress-container { background-color: #e0e0e0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 20px; overflow: hidden; }
         .progress-bar { background-color: #28a745; height: 100%; width: 0%; transition: width 0.3s ease; }
-        .stats { font-size: 14px; font-weight: bold; color: #666; text-align: right; margin-bottom: 15px; }
 
+        /* Карточка вопроса */
         .question-card { display: block; }
         .question-text { font-weight: bold; margin-bottom: 20px; font-size: 17px; line-height: 1.4; color: #2c3e50; }
         
+        /* Варианты ответов */
         .options { list-style: none; padding: 0; margin: 0; }
         .options li { margin-bottom: 12px; }
         .btn-option { 
@@ -33,9 +40,11 @@
         }
         .btn-option:hover:not([disabled]) { border-color: #3182ce; background-color: #ebf8ff; }
         
+        /* Проверка ответов */
         .btn-option.correct { background-color: #c6f6d5 !important; border-color: #38a169 !important; color: #22543d; font-weight: bold; }
         .btn-option.incorrect { background-color: #fed7d7 !important; border-color: #e53e3e !important; color: #742a2a; }
         
+        /* Кнопка */
         .action-btn { 
             display: none; 
             width: 100%; 
@@ -52,10 +61,13 @@
         }
         .action-btn:hover { background-color: #2b6cb0; }
 
+        /* Экран результатов */
         .result-box { display: none; text-align: center; padding: 10px; }
         .result-box h2 { font-size: 26px; margin-bottom: 10px; }
         .result-box p { font-size: 18px; margin-bottom: 20px; }
-        .praise-text { font-size: 22px; font-weight: bold; color: #28a745; margin-bottom: 20px; }
+        .praise-text { font-size: 22px; font-weight: bold; margin-bottom: 20px; }
+        .praise-success { color: #28a745; }
+        .praise-fail { color: #d9534f; }
         .success-title { color: #38a169; }
         .fail-title { color: #e53e3e; }
         .restart-btn { background-color: #28a745; }
@@ -68,10 +80,14 @@
     <h1>Тест: Закрытие смены и кассовые операции</h1>
     
     <div id="quiz-screen">
+        <div class="header-info">
+            <div class="timer" id="timer-display">Осталось времени: 30:00</div>
+            <div class="stats" id="question-number">Вопрос 1 из 25</div>
+        </div>
+
         <div class="progress-container">
             <div class="progress-bar" id="progress-bar"></div>
         </div>
-        <div class="stats" id="question-number">Вопрос 1 из 25</div>
 
         <div class="question-card">
             <div class="question-text" id="question-text">Загрузка...</div>
@@ -90,7 +106,6 @@
 </div>
 
 <script>
-// Расширенный базовый массив вопросов
 const baseTemplates = [
     { q: "Какое значение должна всегда иметь 'Контрольная цифра' при детальной сверке?", options: ["0", "1", "Сумме Z-отчета", "100"], correct: 0 },
     { q: "Что ЗАПРЕЩЕНО делать кассиру при статусе «Отменен» у документа Розничная реализация в 1С?", options: ["Уходить домой", "Печатать Z-отчет", "Пересчитывать кассу", "Проводить РТиУ"], correct: 0 },
@@ -144,6 +159,8 @@ function generate600Questions() {
 let currentQuestions = [];
 let currentIndex = 0;
 let score = 0;
+let timeLeft = 1800; // 30 минут в секундах
+let timerInterval = null;
 
 function shuffle(array) {
     let arr = [...array];
@@ -154,12 +171,35 @@ function shuffle(array) {
     return arr;
 }
 
+function startTimer() {
+    clearInterval(timerInterval);
+    timeLeft = 1800; // 30 минут
+    updateTimerDisplay();
+
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            showResults(true); // Автоматическое завершение по таймауту
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    document.getElementById('timer-display').innerText = `Осталось времени: ${formattedMinutes}:${formattedSeconds}`;
+}
+
 function initQuiz() {
     if (fullQuestionBank.length === 0) {
         generate600Questions();
     }
     
-    // Выбираем 25 СТРОГО уникальных вопросов без дублей
     let shuffledBank = shuffle(fullQuestionBank);
     currentQuestions = shuffledBank.slice(0, 25);
     
@@ -169,6 +209,7 @@ function initQuiz() {
     document.getElementById('quiz-screen').style.display = 'block';
     document.getElementById('result-screen').style.display = 'none';
 
+    startTimer();
     showQuestion();
 }
 
@@ -230,11 +271,13 @@ function nextQuestion() {
     if (currentIndex < currentQuestions.length) {
         showQuestion();
     } else {
-        showResults();
+        showResults(false);
     }
 }
 
-function showResults() {
+function showResults(isTimeOut = false) {
+    clearInterval(timerInterval);
+    
     document.getElementById('quiz-screen').style.display = 'none';
     const resultScreen = document.getElementById('result-screen');
     resultScreen.style.display = 'block';
@@ -244,14 +287,16 @@ function showResults() {
     const praiseBox = document.getElementById('praise-box');
     const scoreText = document.getElementById('result-score');
 
-    if (percent >= 80) {
+    if (percent >= 80 && !isTimeOut) {
         title.innerText = 'Тест успешно сдан!';
         title.className = 'success-title';
         praiseBox.innerText = 'Ты молодец! 🎉';
+        praiseBox.className = 'praise-text praise-success';
     } else {
-        title.innerText = 'Тест не сдан';
+        title.innerText = isTimeOut ? 'Время вышло! Тест не сдан' : 'Тест не сдан';
         title.className = 'fail-title';
-        praiseBox.innerText = '';
+        praiseBox.innerText = 'Не переживай, попробуй ещё!';
+        praiseBox.className = 'praise-text praise-fail';
     }
 
     scoreText.innerText = `Ваш результат: ${score} из ${currentQuestions.length} (${percent}%). Проходной балл — 80%.`;
