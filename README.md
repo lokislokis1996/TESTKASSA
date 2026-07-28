@@ -1,4 +1,4 @@
-👀
+
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -13,7 +13,9 @@
             --text: #2c3e50;
             --border: #dcdfe6;
             --success: #27ae60;
+            --success-bg: #e8f8f0;
             --danger: #e74c3c;
+            --danger-bg: #fde8e8;
         }
 
         body {
@@ -113,21 +115,60 @@
         .option-label {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             padding: 10px 14px;
             background: white;
             border: 1px solid var(--border);
             border-radius: 6px;
             cursor: pointer;
             transition: border-color 0.2s, background 0.2s;
+            position: relative;
         }
 
-        .option-label:hover {
+        .option-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .option-label:hover:not(.disabled) {
             border-color: var(--primary);
             background: #fff9f9;
         }
 
         .option-label input {
             margin-right: 12px;
+        }
+
+        /* Стилевое оформление правильного и неправильного ответа */
+        .option-label.correct {
+            background-color: var(--success-bg) !important;
+            border-color: var(--success) !important;
+            color: #1e7e34;
+            font-weight: 600;
+        }
+
+        .option-label.incorrect {
+            background-color: var(--danger-bg) !important;
+            border-color: var(--danger) !important;
+            color: #bd2130;
+        }
+
+        .option-label.disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        .status-icon {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .correct .status-icon {
+            color: var(--success);
+        }
+
+        .incorrect .status-icon {
+            color: var(--danger);
         }
 
         .progress-bar {
@@ -182,6 +223,7 @@
         <h2>Инструкция к тестированию</h2>
         <ul>
             <li>Вам предстоит ответить на <b>25 случайных вопросов</b> из общей базы.</li>
+            <li>При выборе ответа система <b>сразу покажет, правильный он или нет</b>.</li>
             <li>На прохождение теста отведен строго ограниченный таймер: <b>25 минут</b>.</li>
             <li>Вопросы выбираются без повторений при каждой новой попытке.</li>
             <li>Для сдачи теста необходимо набрать не менее 80% правильных ответов.</li>
@@ -210,7 +252,7 @@
 </div>
 
 <script>
-// ГЕНЕРАТОР БАЗЫ ВОПРОСОВ (Базовый массив генерируется динамически на основе регламентов)
+// ГЕНЕРАТОР БАЗЫ ВОПРОСОВ
 const baseTemplates = [
     {
         q: "Чему всегда должна быть равна «Контрольная цифра» в отчете по закрытию смены?",
@@ -339,11 +381,9 @@ const baseTemplates = [
     }
 ];
 
-// Функция динамического расширения базы до 1000 уникальных вариаций
 function generateQuestionPool() {
     let pool = [];
     let id = 1;
-    // Генерируем комбинации на основе проверенных фактов
     for (let i = 0; i < 40; i++) {
         baseTemplates.forEach((template) => {
             pool.push({
@@ -360,13 +400,12 @@ function generateQuestionPool() {
 const fullQuestionPool = generateQuestionPool();
 let currentQuestions = [];
 let timerInterval;
-let timeLeft = 25 * 60; // 25 минут
+let timeLeft = 25 * 60;
 
 function startTest() {
     document.getElementById('start-screen').classList.remove('active');
     document.getElementById('quiz-screen').classList.add('active');
     
-    // Выбираем 25 случайных НЕПОВТОРЯЮЩИХСЯ вопросов из 1000
     let shuffled = [...fullQuestionPool].sort(() => 0.5 - Math.random());
     currentQuestions = shuffled.slice(0, 25);
 
@@ -386,9 +425,12 @@ function renderQuestions() {
         q.options.forEach((opt, optIndex) => {
             optionsHTML += `
                 <li class="option-item">
-                    <label class="option-label">
-                        <input type="radio" name="question_${index}" value="${optIndex}" onchange="updateProgress()">
-                        ${opt}
+                    <label class="option-label" id="label_${index}_${optIndex}">
+                        <div class="option-content">
+                            <input type="radio" name="question_${index}" value="${optIndex}" onchange="handleAnswerSelect(${index}, ${optIndex})">
+                            <span>${opt}</span>
+                        </div>
+                        <span class="status-icon" id="icon_${index}_${optIndex}"></span>
                     </label>
                 </li>
             `;
@@ -400,6 +442,32 @@ function renderQuestions() {
         `;
         container.appendChild(qCard);
     });
+}
+
+// Функция мгновенной проверки при выборе ответа
+function handleAnswerSelect(qIndex, selectedOptIndex) {
+    const correctAnswer = currentQuestions[qIndex].answer;
+    
+    // Получаем все радиокнопки для текущего вопроса и отключаем их
+    const radios = document.getElementsByName(`question_${qIndex}`);
+    radios.forEach((radio, idx) => {
+        radio.disabled = true;
+        const label = document.getElementById(`label_${qIndex}_${idx}`);
+        label.classList.add('disabled');
+        
+        // Если это ПРАВИЛЬНЫЙ вариант - подсвечиваем зеленым
+        if (idx === correctAnswer) {
+            label.classList.add('correct');
+            document.getElementById(`icon_${qIndex}_${idx}`).innerHTML = '✓';
+        }
+        // Если пользователь ВЫБРАЛ НЕПРАВИЛЬНЫЙ вариант - подсвечиваем красным
+        if (idx === selectedOptIndex && selectedOptIndex !== correctAnswer) {
+            label.classList.add('incorrect');
+            document.getElementById(`icon_${qIndex}_${idx}`).innerHTML = '✗';
+        }
+    });
+
+    updateProgress();
 }
 
 function updateProgress() {
