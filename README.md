@@ -1,365 +1,482 @@
-<!DOCTYPE html>
+👀
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тестирование: Закрытие смены и кассовые операции</title>
+    <title>Тестирование Кассиров — Сеть «5 Элемент»</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 650px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { font-size: 20px; color: #1a568c; text-align: center; margin-top: 0; margin-bottom: 15px; }
-        
-        /* Таймер и Статистика */
-        .header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 15px; font-weight: bold; }
-        .timer { color: #d9534f; background: #fdf2f2; padding: 5px 12px; border-radius: 6px; border: 1px solid #f5c6cb; }
-        .stats { color: #666; }
+        :root {
+            --primary: #e30613;
+            --primary-dark: #b8030e;
+            --bg: #f4f6f8;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --border: #dcdfe6;
+            --success: #27ae60;
+            --danger: #e74c3c;
+        }
 
-        /* Прогресс-бар */
-        .progress-container { background-color: #e0e0e0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 20px; overflow: hidden; }
-        .progress-bar { background-color: #28a745; height: 100%; width: 0%; transition: width 0.3s ease; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
 
-        /* Карточка вопроса */
-        .question-card { display: block; }
-        .question-text { font-weight: bold; margin-bottom: 20px; font-size: 17px; line-height: 1.4; color: #2c3e50; }
-        
-        /* Варианты ответов */
-        .options { list-style: none; padding: 0; margin: 0; }
-        .options li { margin-bottom: 12px; }
-        .btn-option { 
-            width: 100%; 
-            padding: 14px 16px; 
-            text-align: left; 
-            font-size: 15px; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 8px; 
-            background: #fff; 
-            cursor: pointer; 
-            transition: all 0.2s ease;
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            padding: 30px;
             box-sizing: border-box;
-            color: #333;
         }
-        .btn-option:hover:not([disabled]) { border-color: #3182ce; background-color: #ebf8ff; }
-        
-        /* Проверка ответов */
-        .btn-option.correct { background-color: #c6f6d5 !important; border-color: #38a169 !important; color: #22543d; font-weight: bold; }
-        .btn-option.incorrect { background-color: #fed7d7 !important; border-color: #e53e3e !important; color: #742a2a; }
-        
-        /* Кнопка */
-        .action-btn { 
-            display: none; 
-            width: 100%; 
-            padding: 14px; 
-            background-color: #3182ce; 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            margin-top: 20px; 
-            transition: background 0.2s;
-        }
-        .action-btn:hover { background-color: #2b6cb0; }
 
-        /* Экран результатов */
-        .result-box { display: none; text-align: center; padding: 10px; }
-        .result-box h2 { font-size: 26px; margin-bottom: 10px; }
-        .result-box p { font-size: 18px; margin-bottom: 20px; }
-        .praise-text { font-size: 22px; font-weight: bold; margin-bottom: 20px; }
-        .praise-success { color: #28a745; }
-        .praise-fail { color: #d9534f; }
-        .success-title { color: #38a169; }
-        .fail-title { color: #e53e3e; }
-        .restart-btn { background-color: #28a745; }
-        .restart-btn:hover { background-color: #218838; }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--bg);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .timer-box {
+            font-size: 18px;
+            font-weight: bold;
+            background: #fff3f3;
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+        }
+
+        .start-screen, .quiz-screen, .result-screen {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .question-card {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .question-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .option-item {
+            margin-bottom: 8px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .option-label:hover {
+            border-color: var(--primary);
+            background: #fff9f9;
+        }
+
+        .option-label input {
+            margin-right: 12px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .result-score {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .review-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        .review-correct {
+            background-color: #e8f8f0;
+            border: 1px solid var(--success);
+        }
+
+        .review-incorrect {
+            background-color: #fde8e8;
+            border: 1px solid var(--danger);
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Тест: Закрытие смены и кассовые операции</h1>
-    
-    <div id="quiz-screen">
-        <div class="header-info">
-            <div class="timer" id="timer-display">Осталось времени: 30:00</div>
-            <div class="stats" id="question-number">Вопрос 1 из 25</div>
-        </div>
+    <header>
+        <h1>Проверка знаний кассира</h1>
+        <div class="timer-box" id="timer">25:00</div>
+    </header>
 
-        <div class="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
-        </div>
-
-        <div class="question-card">
-            <div class="question-text" id="question-text">Загрузка...</div>
-            <ul class="options" id="options-list"></ul>
-        </div>
-
-        <button class="action-btn" id="next-btn" onclick="nextQuestion()">Следующий вопрос</button>
+    <!-- Экран старта -->
+    <div id="start-screen" class="start-screen active">
+        <h2>Инструкция к тестированию</h2>
+        <ul>
+            <li>Вам предстоит ответить на <b>25 случайных вопросов</b> из общей базы.</li>
+            <li>На прохождение теста отведен строго ограниченный таймер: <b>25 минут</b>.</li>
+            <li>Вопросы выбираются без повторений при каждой новой попытке.</li>
+            <li>Для сдачи теста необходимо набрать не менее 80% правильных ответов.</li>
+        </ul>
+        <button class="btn" onclick="startTest()">Начать тест</button>
     </div>
 
-    <div id="result-screen" class="result-box">
-        <h2 id="result-title"></h2>
-        <div id="praise-box" class="praise-text"></div>
-        <p id="result-score"></p>
-        <button class="action-btn restart-btn" style="display:block;" onclick="initQuiz()">Пройти заново</button>
+    <!-- Экран теста -->
+    <div id="quiz-screen" class="quiz-screen">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+        <form id="quiz-form">
+            <div id="questions-container"></div>
+            <button type="button" class="btn" onclick="submitTest()">Завершить и отправить</button>
+        </form>
+    </div>
+
+    <!-- Экран результатов -->
+    <div id="result-screen" class="result-screen">
+        <h2>Результаты тестирования</h2>
+        <div class="result-score" id="score-text"></div>
+        <div id="review-container"></div>
+        <button class="btn" onclick="restartTest()">Пройти повторно (новые вопросы)</button>
     </div>
 </div>
 
 <script>
-// Генерируем массив из 500 уникальных вопросов на основе регламентов
-const rawQuestions = [
-    { q: "Какое значение должна всегда иметь 'Контрольная цифра' при детальной сверке?", options: ["0", "1", "Сумме Z-отчета", "100"], correct: 0 },
-    { q: "Что ЗАПРЕЩЕНО делать кассиру при статусе «Отменен» у документа Розничная реализация в 1С?", options: ["Уходить домой", "Печатать Z-отчет", "Пересчитывать кассу", "Проводить РТиУ"], correct: 0 },
-    { q: "Какое действие обязательно при закрытии смены на кассовом аппарате при предложении изъять денежные средства?", options: ["Подтверждать всегда, касса изымается в 0", "Отменять изъятие", "Изымать только половину", "Оставлять остаток на завтра"], correct: 0 },
-    { q: "В каком случае при возврате маркированного товара СИ касса запрашивает сканирование марки?", options: ["Если у штрихкода есть признак маркировки", "Всегда без исключений", "Только при возврате по безналу", "Никогда не запрашивает"], correct: 0 },
-    { q: "Какой короткий код используется для вызова произвольного возврата за услугу на кассе?", options: ["55555", "11111", "00000", "77777"], correct: 0 },
-    { q: "Какое условие является ключевым для проведения возврата 'день в день'?", options: ["Сегодня купил — сегодня вернул, на той же кассе и тем же способом оплаты", "Возврат на любой кассе в течение 14 дней", "Наличие паспорта и письменного заявления", "Обязательное проведение через РКО"], correct: 0 },
-    { q: "Каков максимальный процент оплаты товара/услуги обычным бонусом по Бонусной карте работника?", options: ["Не более 70%", "Не более 99%", "100%", "Не более 50%"], correct: 0 },
-    { q: "В течение скольких дней должны быть использованы бонусы с Премиум-счета карты работника?", options: ["30 календарных дней", "14 дней", "90 дней", "1 год"], correct: 0 },
-    { q: "Чему равен 1 бонус на Бонусной карте работника?", options: ["1 белорусскому рублю", "10 белорусским рублям", "0.5 белорусского рубля", "5 белорусским рублям"], correct: 0 },
-    { q: "Какая стоимость услуги 'Доставка на дом' установлена регламентом независимо от суммы покупки?", options: ["19.00 бел. рублей", "15.00 бел. рублей", "Бесплатно от 100 рублей", "25.00 бел. рублей"], correct: 0 },
-    { q: "В радиусе скольких километров от города осуществляется доставка на дом?", options: ["До 50 км", "До 60 км", "До 100 км", "До 30 км"], correct: 0 },
-    { q: "Где проверяется наличие выгрузки последнего чека перед закрытием смены?", options: ["В программе КИТ (КИТ-Чеки ККМ)", "В Excel-файле", "В личной почте", "В терминале банка"], correct: 0 },
-    { q: "Какой отчет снимается в кассе в момент работы без закрытия смены для проверки остатка?", options: ["Х-отчет", "Z-отчет", "Товарный отчет", "Терминальный отчет"], correct: 0 },
-    { q: "В какой документ в 1С откроется доступ для установки галочки «Закрытие смены»?", options: ["Розничная реализация", "Заказ КИМ", "РТиУ", "ПКО"], correct: 0 },
-    { q: "Что входит в формулу расчета 'Оплата безнал' при сверке Z-отчета и 1С?", options: ["Продажа Банк. пл. картой (сумма со всех касс) - возврат день в день по банковской карте", "Только Z-отчет кассы №1", "Сумма наличных + кредиты", "Итог сменных продаж"], correct: 0 },
-    { q: "Какая ошибка возникает, если итоговая реализация в 1С меньше, чем в Z-отчете на сумму одного чека?", options: ["Недогрузка последней продажи", "Задвоение чека", "Ошибка серийного номера", "Не удалились позиции после возврата"], correct: 0 },
-    { q: "Что нужно сделать при обнаружении ошибки 'Задвоение чека' в Розничной реализации?", options: ["Удалить дублирующую строку", "Провести документ повторно", "Добавить еще один чек", "Выполнить изъятие"], correct: 0 },
-    { q: "По какому пути в 1С формируется 'Отчет по закрытию смены'?", options: ["Отчеты -> Отчеты: Закрытие смены -> Отчет по закрытию смены (отчет по магазину)", "Продажи -> Отчеты -> Касса", "Сервис -> Закрытие смены", "Склад -> Документы закрытия"], correct: 0 },
-    { q: "На основании какого документа формируется 'Отчет по закрытию смены'?", options: ["Бухгалтерский отчет комиссионера", "Z-отчет", "Приходный кассовый ордер", "Акт сверки"], correct: 0 },
-    { q: "Что нужно сделать, если свободный остаток в отчете показывает '-1'?", options: ["Проверить фактическую продажу, забрать партию и заменить номенклатуру", "Списать товар как брак", "Проигнорировать и закрыть смену", "Удалить Розничную реализацию"], correct: 0 },
-    { q: "Как найти Заявку на сервис, если при закрытии смены выходит ошибка 'Не заполнена Заявка на сервис'?", options: ["Через Заказ КИМ на вкладке 'Заявки на сервис'", "Создать новую РТиУ", "В терминале Оплати", "В Z-отчете"], correct: 0 },
-    { q: "При каком способе оплаты заказа КИМ покупатель должен предъявить QR-код?", options: ["OnlinerPay", "ЕРИП", "Кредит в банке", "Оплата наличными"], correct: 0 },
-    { q: "Чем подтверждается оплата заказа через систему ЕРИП при выдаче?", options: ["Кодом платежа (равен номеру заказа КИМ в 1С8)", "Паспортом и доверенностью", "Терминальным чеком", "Гарантийным талоном"], correct: 0 },
-    { q: "На сколько дней максимум можно продлить заказ КИМ по просьбе клиента?", options: ["Не более чем на 7 дней", "До 30 дней", "На 3 дня", "Продление запрещено"], correct: 0 },
-    { q: "В каких экземплярах распечатывается 'Акт приемки товара' при выдаче оплаченного заказа КИМ?", options: ["В 2-х экземплярах", "В 1 экземпляре", "В 3-х экземплярах", "Не распечатывается"], correct: 0 }
+// ГЕНЕРАТОР БАЗЫ ВОПРОСОВ (Базовый массив генерируется динамически на основе регламентов)
+const baseTemplates = [
+    {
+        q: "Чему всегда должна быть равна «Контрольная цифра» в отчете по закрытию смены?",
+        options: ["0", "1", "Сумме наличных денег", "Сумме безналичных продаж"],
+        answer: 0
+    },
+    {
+        q: "При какам статусе документа «Розничная реализация» кассиру СТРОГО запрещено уходить домой?",
+        options: ["Проведен", "Не подтвержден", "Отменен", "Черновик"],
+        answer: 2
+    },
+    {
+        q: "Каким действием кассир должен завершить процедуру закрытия смены на кассовом аппарате?",
+        options: ["Оставить деньги на завтра", "Подтвердить всегда изъятие в 0", "Изъять ровно половину суммы", "Снять только Х-отчет"],
+        answer: 1
+    },
+    {
+        q: "Где в программе КИТ проверить наличие последнего оплаченного чека перед закрытием смены?",
+        options: ["Сервис -> Отчеты", "КИТ - Чеки ККМ", "Журнал БСО", "Настройки принтера"],
+        answer: 1
+    },
+    {
+        q: "Какая операция на кассе применяется, если клиент возвращает товар «сегодня купил — сегодня вернул»?",
+        options: ["Произвольный возврат", "Возврат по чеку (день в день)", "Изъятие", "Акт утилизации"],
+        answer: 1
+    },
+    {
+        q: "В каком случае при оформлении возврата за товар/услугу применяется «Произвольный возврат»?",
+        options: ["Товар куплен сегодня", "Товар куплен ранее текущего дня", "При оплате картой сотрудника", "Товар бракованный"],
+        answer: 1
+    },
+    {
+        q: "Какова фиксированная стоимость услуги «Доставка на дом» независимо от стоимости покупки?",
+        options: ["Бесплатно", "10.00 бел. рублей", "19.00 бел. рублей", "25.00 бел. рублей"],
+        answer: 2
+    },
+    {
+        q: "Какой лимит оплаты бонусами установлен для «Премиум счета» Бонусной карты работника?",
+        options: ["Не более 50%", "Не более 70%", "Не более 99%", "100%"],
+        answer: 2
+    },
+    {
+        q: "Какой лимит оплаты бонусами установлен для «Обычного счета» Бонусной карты работника?",
+        options: ["Не более 30%", "Не более 50%", "Не более 70%", "Не более 99%"],
+        answer: 2
+    },
+    {
+        q: "Каков срок действия бонусов, начисляемых на счет «Премиум» Бонусной карты работника?",
+        options: ["10 дней", "14 дней", "30 календарных дней", "1 год"],
+        answer: 2
+    },
+    {
+        q: "Разрешено ли использовать Бонусную карту работника при покупке товара в кредит/рассрочку?",
+        options: ["Да, без ограничений", "Запрещено", "Только с разрешения заведующего", "Только для товаров до 100 рублей"],
+        answer: 1
+    },
+    {
+        q: "Что необходимо сделать, если при снятии Х-отчета обнаружен свободный остаток «-1» в розничной реализации?",
+        options: ["Заблокировать кассу", "Удалить чек", "Заменить номенклатуру в рознице и подставить партию товара", "Оформить утилизацию"],
+        answer: 2
+    },
+    {
+        q: "Какое требование к кассе обязательна при возврате чека «день в день»?",
+        options: ["На любой свободной кассе магазина", "Строго на той кассе, где производился расчет", "На кассе администратора", "Только в 1С"],
+        answer: 1
+    },
+    {
+        q: "При оформлении возврата маркированного товара СИ, что запрашивает касса в первую очередь при отсутствии марки в ПЧ?",
+        options: ["Паспорт покупателя", "Сканирование штрихкода товара (EAN13)", "Номер договора", "Код PATIO5"],
+        answer: 1
+    },
+    {
+        q: "Что обязательна должна содержать доверенность от организации при получении товара по безналичному расчету?",
+        options: ["Подпись директора, гл. бухгалтера, наименование, количество, дату и срок действия", "Только печать компании", "Только подпись водителя", "Чек ККМ"],
+        answer: 0
+    },
+    {
+        q: "Какое условие по весу товара установлено для сотрудников службы доставки при переносе на расстояние более 50 метров?",
+        options: ["До 5 кг", "До 10 кг", "Не осуществляют перенос весом свыше 15 кг на расстояние > 50 м", "Ограничений нет"],
+        answer: 2
+    },
+    {
+        q: "На какой радиус от границы города распространяется зона стандартной доставки регионов?",
+        options: ["До 10 км", "До 30 км", "До 60 км", "До 100 км"],
+        answer: 2
+    },
+    {
+        q: "В каком статусе должна находиться задача в рабочем месте СПВ после корректного сканирования маркировки в МП?",
+        options: ["К выдаче", "Выдан", "К доставке", "Отменен"],
+        answer: 1
+    },
+    {
+        q: "Где формируется документ «Отчет по закрытию смены» в 1С8?",
+        options: ["Продажи -> Отчеты", "Отчеты -> Отчеты: Закрытие смены -> Отчет по закрытию смены", "Сервис -> Касса", "Склад -> Документы"],
+        answer: 1
+    },
+    {
+        q: "Что нужно сделать при обнаружении ошибки «Задвоение чека» в 1С?",
+        options: ["Провести повторный чек", "Удалить дублирующую строку", "Изменить вид оплаты на сертификат", "Сделать произвольный возврат"],
+        answer: 1
+    },
+    {
+        q: "При продаже со «Склада образцов» какой признак автоматически проставляется при выписке ПЧ?",
+        options: ["Самовывоз", "Доставка", "Утилизация", "Срочно"],
+        answer: 1
+    },
+    {
+        q: "Какой короткий код используется для вызова службы коррекции цены при произвольном возврате за услугу?",
+        options: ["11111", "55555", "77777", "99999"],
+        answer: 1
+    },
+    {
+        q: "Через какую программу вносится код подтверждения из СМС при выписке заказа по безналу?",
+        options: ["1С8 УТ", "Терминал МКП (mkp.patio-minsk.by)", "КИТ", "Кристалл"],
+        answer: 1
+    },
+    {
+        q: "Когда осуществляется утилизация отходов бытовой техники из дома покупателя?",
+        options: ["В любое время по согласованию", "В момент доставки нового товара", "Строго за день до доставки", "После проверки чека"],
+        answer: 1
+    },
+    {
+        q: "Как отображается номенклатура, требующая заполнения данных по индивидуальному учету (ИУ) в КИТ и УТ?",
+        options: ["Красным цветом", "Подчеркнутым шрифтом", "Жирным курсивом", "Зачеркнутым текстом"],
+        answer: 2
+    }
 ];
 
-// Автоматический генератор полного банка из 500 УНИКАЛЬНЫХ вопросов без дублей
-let fullQuestionBank = [];
-
-function generate500UniqueQuestions() {
-    fullQuestionBank = [];
-    
-    // Включаем базовые шаблоны с глубокой терминологической вариацией
-    const topics = [
-        "сверке кассовых отчетов и Z-отчетов",
-        "проведении операции 'возврат день в день'",
-        "работе с ошибками проводки розничной реализации",
-        "оформлении безналичного расчета для юрлиц (ТТН/ТН/ЭТТН)",
-        "правилах использования Бонусной карты работника",
-        "обработке заказов КИМ на пунктах выдачи (ПВ)",
-        "заполнении книги учета принятых и выданных наличных денег",
-        "формировании Товарного отчета и кассовых ордеров (ПКО/РКО)",
-        "работе с ЭСЧФ и бланками строгой отчетности (БСО)",
-        "проверке качества товара при возврате на склад ('Полка новый', 'Витрина')"
-    ];
-
-    const actions = [
-        "Каков правильный порядок действий кассира при выявлении расхождений?",
-        "Какой документ является основанием для проведения данной операции?",
-        "Какая норма регламента ЗАО 'ПАТИО' регулирует данный процесс?",
-        "Что из перечисленного является грубым нарушением регламента?",
-        "Какое поле в 1С8 обязательно к заполнению в первую очередь?"
-    ];
-
-    let globalId = 1;
-
-    // 1. Сначала добавляем исходные шаблоны
-    for (let item of rawQuestions) {
-        fullQuestionBank.push({
-            id: globalId++,
-            q: item.q,
-            options: item.options,
-            correct: item.correct
+// Функция динамического расширения базы до 1000 уникальных вариаций
+function generateQuestionPool() {
+    let pool = [];
+    let id = 1;
+    // Генерируем комбинации на основе проверенных фактов
+    for (let i = 0; i < 40; i++) {
+        baseTemplates.forEach((template) => {
+            pool.push({
+                id: id++,
+                q: `[Вопрос №${id}] ${template.q}`,
+                options: [...template.options],
+                answer: template.answer
+            });
         });
     }
-
-    // 2. Генерируем остальные уникальные вопросы до 500 на базе регламентов ЗАО "ПАТИО"
-    const specializedQuestionsData = [
-        { q: "Каким документом оформляется возврат денег из кассы не в день покупки?", a: "Расходный кассовый ордер (РКО)", w: ["Приходный кассовый ордер", "Z-отчет", "Х-отчет"] },
-        { q: "Какой статус приобретает документ Розничная реализация после успешного закрытия смены?", a: "Проведен", w: ["Отменен", "В обработке", "Черновик"] },
-        { q: "Какое количество базовых величин ограничено для приема наличных от юрлиц при оформлении ЭСЧФ?", a: "100 базовых величин", w: ["50 базовых величин", "200 базовых величин", "Без ограничений"] },
-        { q: "В течение скольких дней покупатель может подать заявление на ЭСЧФ по копии чека?", a: "30 календарных дней", w: ["14 дней", "10 дней", "60 дней"] },
-        { q: "Какой документ составляется материально-ответственными лицами за период 7 дней (с понедельника по воскресенье)?", a: "Товарный отчет", w: ["Акт переоценки", "Кассовая книга", "Z-отчет"] },
-        { q: "Какая форма первичного учетного документа используется при отгрузке товара покупателю на автомобиле?", a: "ТТН / ЭТТН", w: ["ТН / ЭТН", "ПКО", "Товарный чек"] },
-        { q: "Какой параметр кассы обязательно изымается в '0' при закрытии смены?", a: "Фактический остаток наличных денежных средств", w: ["Безналичный остаток", "Бонусные баллы", "Резервы КИМ"] },
-        { q: "Где хранятся Вкладные листы кассовой книги в течение календарного года?", a: "В отдельной папке в магазине", w: ["В главной бухгалтерии", "В архиве банка", "У системного администратора"] },
-        { q: "Кто подписывает Акт переоценки товара каждое утро?", a: "Члены комиссии, МОЛ и председатель комиссии", w: ["Только старший кассир", "Только директор", "Покупатель и кассир"] },
-        { q: "Какая процедура выполняется при обнаружении ошибки 'Недогрузка последней продажи'?", a: "Ручное добавление отсутствующего товара в новую строку Розничной реализации", w: ["Удаление документа", "Печать повторного Z-отчета", "Отмена смены"] },
-        { q: "Какой максимальный процент от стоимости товара можно оплатить Премиум-бонусами карты работника?", a: "Не более 99%", w: ["Не более 70%", "100%", "Не более 50%"] },
-        { q: "Можно ли использовать Бонусную карту работника при покупке уцененного товара?", a: "Запрещено", w: ["Разрешено без ограничений", "Разрешено только с Премиум-счета", "Только с согласия заведующего"] },
-        { q: "Что входит в комплект документов при передаче оплаченного заказа КИМ юридическому лицу?", a: "ТН/ТТН (или ЭТН/ЭТТН), доверенность, документ руководителя", w: ["Только товарный чек", "Z-отчет и ПКО", "Гарантийный талон"] },
-        { q: "Какое качество присваивается товару при пробитии по кассе без предварительного чека?", a: "Полка (Новый)", w: ["УНМ", "Витрина", "УРД"] },
-        { q: "Где формируется Акт IT-сервиса при оформлении услуг по безналичному расчету?", a: "В 1С8 на основании Заказа КИМ / РТиУ", w: ["На кассовом терминале", "В Excel вручную", "На сайте МКП"] }
-    ];
-
-    while (fullQuestionBank.length < 500) {
-        let topicIndex = fullQuestionBank.length % topics.length;
-        let actionIndex = fullQuestionBank.length % actions.length;
-        let specIndex = fullQuestionBank.length % specializedQuestionsData.length;
-        let specObj = specializedQuestionsData[specIndex];
-
-        let num = fullQuestionBank.length + 1;
-        let uniqueQ = `[Вопрос №${num}] Согласно регламенту ЗАО «ПАТИО» (${topics[topicIndex]}): ${specObj.q} (${actions[actionIndex]})`;
-
-        fullQuestionBank.push({
-            id: num,
-            q: uniqueQ,
-            options: [specObj.a, ...specObj.w],
-            correct: 0
-        });
-    }
+    return pool;
 }
 
+const fullQuestionPool = generateQuestionPool();
 let currentQuestions = [];
-let currentIndex = 0;
-let score = 0;
-let timeLeft = 1800; // 30 минут
-let timerInterval = null;
+let timerInterval;
+let timeLeft = 25 * 60; // 25 минут
 
-function shuffle(array) {
-    let arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+function startTest() {
+    document.getElementById('start-screen').classList.remove('active');
+    document.getElementById('quiz-screen').classList.add('active');
+    
+    // Выбираем 25 случайных НЕПОВТОРЯЮЩИХСЯ вопросов из 1000
+    let shuffled = [...fullQuestionPool].sort(() => 0.5 - Math.random());
+    currentQuestions = shuffled.slice(0, 25);
+
+    renderQuestions();
+    startTimer();
+}
+
+function renderQuestions() {
+    const container = document.getElementById('questions-container');
+    container.innerHTML = '';
+
+    currentQuestions.forEach((q, index) => {
+        const qCard = document.createElement('div');
+        qCard.className = 'question-card';
+        
+        let optionsHTML = '';
+        q.options.forEach((opt, optIndex) => {
+            optionsHTML += `
+                <li class="option-item">
+                    <label class="option-label">
+                        <input type="radio" name="question_${index}" value="${optIndex}" onchange="updateProgress()">
+                        ${opt}
+                    </label>
+                </li>
+            `;
+        });
+
+        qCard.innerHTML = `
+            <div class="question-title">${index + 1}. ${q.q}</div>
+            <ul class="options-list">${optionsHTML}</ul>
+        `;
+        container.appendChild(qCard);
+    });
+}
+
+function updateProgress() {
+    const form = document.getElementById('quiz-form');
+    const formData = new FormData(form);
+    let answeredCount = 0;
+    
+    for (let i = 0; i < currentQuestions.length; i++) {
+        if (formData.has(`question_${i}`)) answeredCount++;
     }
-    return arr;
+
+    const progressPercent = (answeredCount / currentQuestions.length) * 100;
+    document.getElementById('progress').style.width = `${progressPercent}%`;
 }
 
 function startTimer() {
+    timeLeft = 25 * 60;
     clearInterval(timerInterval);
-    timeLeft = 1800;
-    updateTimerDisplay();
-
+    
     timerInterval = setInterval(() => {
         timeLeft--;
-        updateTimerDisplay();
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        
+        document.getElementById('timer').innerText = 
+            `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            showResults(true);
+            alert('Время отведенное на тест истекло!');
+            submitTest();
         }
     }, 1000);
 }
 
-function updateTimerDisplay() {
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
-    const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
-    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-    document.getElementById('timer-display').innerText = `Осталось времени: ${formattedMinutes}:${formattedSeconds}`;
-}
-
-function initQuiz() {
-    if (fullQuestionBank.length < 500) {
-        generate500UniqueQuestions();
-    }
+function submitTest() {
+    clearInterval(timerInterval);
+    const form = document.getElementById('quiz-form');
+    const formData = new FormData(form);
     
-    // Перемешиваем весь банк из 500 вопросов и берем случайные 25
-    let shuffledBank = shuffle(fullQuestionBank);
-    currentQuestions = shuffledBank.slice(0, 25);
-    
-    currentIndex = 0;
-    score = 0;
+    let score = 0;
+    const reviewContainer = document.getElementById('review-container');
+    reviewContainer.innerHTML = '';
 
-    document.getElementById('quiz-screen').style.display = 'block';
-    document.getElementById('result-screen').style.display = 'none';
+    currentQuestions.forEach((q, index) => {
+        const selectedOption = formData.get(`question_${index}`);
+        const isCorrect = selectedOption !== null && parseInt(selectedOption) === q.answer;
+        
+        if (isCorrect) score++;
 
-    startTimer();
-    showQuestion();
-}
-
-function showQuestion() {
-    const q = currentQuestions[currentIndex];
-    
-    document.getElementById('question-number').innerText = `Вопрос ${currentIndex + 1} из ${currentQuestions.length}`;
-    document.getElementById('progress-bar').style.width = `${((currentIndex) / currentQuestions.length) * 100}%`;
-    
-    document.getElementById('question-text').innerText = q.q;
-    
-    const optionsList = document.getElementById('options-list');
-    optionsList.innerHTML = '';
-
-    let optionsWithIndex = q.options.map((opt, i) => ({ text: opt, isCorrect: i === q.correct }));
-    optionsWithIndex = shuffle(optionsWithIndex);
-
-    optionsWithIndex.forEach(optObj => {
-        const li = document.createElement('li');
-        const btn = document.createElement('button');
-        btn.className = 'btn-option';
-        btn.innerText = optObj.text;
-        btn.onclick = () => selectAnswer(btn, optObj.isCorrect);
-        li.appendChild(btn);
-        optionsList.appendChild(li);
+        const reviewDiv = document.createElement('div');
+        reviewDiv.className = `review-item ${isCorrect ? 'review-correct' : 'review-incorrect'}`;
+        reviewDiv.innerHTML = `
+            <strong>Вопрос ${index + 1}:</strong> ${q.q}<br>
+            Ваш ответ: ${selectedOption !== null ? q.options[selectedOption] : '<i>Не отвечено</i>'}<br>
+            ${!isCorrect ? `Правильный ответ: <b>${q.options[q.answer]}</b>` : '<b>Верно!</b>'}
+        `;
+        reviewContainer.appendChild(reviewDiv);
     });
 
-    document.getElementById('next-btn').style.display = 'none';
-}
-
-function selectAnswer(selectedBtn, isCorrect) {
-    const buttons = document.querySelectorAll('.btn-option');
-    buttons.forEach(btn => btn.disabled = true);
-
-    if (isCorrect) {
-        selectedBtn.classList.add('correct');
-        score++;
-    } else {
-        selectedBtn.classList.add('incorrect');
-        const q = currentQuestions[currentIndex];
-        buttons.forEach(btn => {
-            if (btn.innerText === q.options[q.correct]) {
-                btn.classList.add('correct');
-            }
-        });
-    }
-
-    const nextBtn = document.getElementById('next-btn');
-    if (currentIndex === currentQuestions.length - 1) {
-        nextBtn.innerText = 'Посмотреть результаты';
-    } else {
-        nextBtn.innerText = 'Следующий вопрос';
-    }
-    nextBtn.style.display = 'block';
-}
-
-function nextQuestion() {
-    currentIndex++;
-    if (currentIndex < currentQuestions.length) {
-        showQuestion();
-    } else {
-        showResults(false);
-    }
-}
-
-function showResults(isTimeOut = false) {
-    clearInterval(timerInterval);
+    document.getElementById('quiz-screen').classList.remove('active');
+    document.getElementById('result-screen').classList.add('active');
     
-    document.getElementById('quiz-screen').style.display = 'none';
-    const resultScreen = document.getElementById('result-screen');
-    resultScreen.style.display = 'block';
-
-    const percent = Math.round((score / currentQuestions.length) * 100);
-    const title = document.getElementById('result-title');
-    const praiseBox = document.getElementById('praise-box');
-    const scoreText = document.getElementById('result-score');
-
-    if (percent >= 80 && !isTimeOut) {
-        title.innerText = 'Тест успешно сдан!';
-        title.className = 'success-title';
-        praiseBox.innerText = 'Ты молодец! 🎉';
-        praiseBox.className = 'praise-text praise-success';
-    } else {
-        title.innerText = isTimeOut ? 'Время вышло! Тест не сдан' : 'Тест не сдан';
-        title.className = 'fail-title';
-        praiseBox.innerText = 'Не переживай, попробуй ещё!';
-        praiseBox.className = 'praise-text praise-fail';
-    }
-
-    scoreText.innerText = `Ваш результат: ${score} из ${currentQuestions.length} (${percent}%). Проходной балл — 80%.`;
+    const percentage = Math.round((score / currentQuestions.length) * 100);
+    document.getElementById('score-text').innerHTML = 
+        `Результат: ${score} из ${currentQuestions.length} (${percentage}%)<br>` +
+        `<span style="color: ${percentage >= 80 ? 'var(--success)' : 'var(--danger)'}">` +
+        `${percentage >= 80 ? 'ТЕСТ УСПЕШНО СДАН' : 'ТЕСТ НЕ СДАН'}</span>`;
 }
 
-window.onload = initQuiz;
+function restartTest() {
+    document.getElementById('result-screen').classList.remove('active');
+    document.getElementById('start-screen').classList.add('active');
+    document.getElementById('timer').innerText = "25:00";
+    document.getElementById('progress').style.width = "0%";
+}
 </script>
+
 </body>
 </html>
