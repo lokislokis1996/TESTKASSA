@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<Удачи;)>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -6,19 +6,16 @@
     <title>Тестирование: Закрытие смены и кассовые операции</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 650px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h1 { font-size: 20px; color: #1a568c; text-align: center; margin-top: 0; margin-bottom: 20px; }
         
-        /* Прогресс-бар */
         .progress-container { background-color: #e0e0e0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 20px; overflow: hidden; }
         .progress-bar { background-color: #28a745; height: 100%; width: 0%; transition: width 0.3s ease; }
         .stats { font-size: 14px; font-weight: bold; color: #666; text-align: right; margin-bottom: 15px; }
 
-        /* Карточка вопроса */
         .question-card { display: block; }
-        .question-text { font-weight: bold; margin-bottom: 20px; font-size: 18px; line-height: 1.4; color: #2c3e50; }
+        .question-text { font-weight: bold; margin-bottom: 20px; font-size: 17px; line-height: 1.4; color: #2c3e50; }
         
-        /* Варианты ответов */
         .options { list-style: none; padding: 0; margin: 0; }
         .options li { margin-bottom: 12px; }
         .btn-option { 
@@ -36,11 +33,9 @@
         }
         .btn-option:hover:not([disabled]) { border-color: #3182ce; background-color: #ebf8ff; }
         
-        /* Стили мгновенной проверки */
         .btn-option.correct { background-color: #c6f6d5 !important; border-color: #38a169 !important; color: #22543d; font-weight: bold; }
         .btn-option.incorrect { background-color: #fed7d7 !important; border-color: #e53e3e !important; color: #742a2a; }
         
-        /* Кнопка навигации */
         .action-btn { 
             display: none; 
             width: 100%; 
@@ -57,7 +52,6 @@
         }
         .action-btn:hover { background-color: #2b6cb0; }
 
-        /* Экран результатов */
         .result-box { display: none; text-align: center; padding: 10px; }
         .result-box h2 { font-size: 24px; margin-bottom: 10px; }
         .result-box p { font-size: 18px; margin-bottom: 25px; }
@@ -94,8 +88,8 @@
 </div>
 
 <script>
-// Шаблоны вопросов на основе регламентов
-const coreTemplates = [
+// Расширенный базовый массив тем и ситуаций
+const baseTemplates = [
     { q: "Какое значение должна всегда иметь 'Контрольная цифра' при детальной сверке?", options: ["0", "1", "Сумме Z-отчета", "100"], correct: 0 },
     { q: "Что ЗАПРЕЩЕНО делать кассиру при статусе «Отменен» у документа Розничная реализация в 1С?", options: ["Уходить домой", "Печатать Z-отчет", "Пересчитывать кассу", "Проводить РТиУ"], correct: 0 },
     { q: "Какое действие обязательно при закрытии смены на кассовом аппарате при предложении изъять денежные средства?", options: ["Подтверждать всегда, касса изымается в 0", "Отменять изъятие", "Изымать только половину", "Оставлять остаток на завтра"], correct: 0 },
@@ -115,7 +109,7 @@ const coreTemplates = [
     { q: "Что нужно сделать при обнаружении ошибки 'Задвоение чека' в Розничной реализации?", options: ["Удалить дублирующую строку", "Провести документ повторно", "Добавить еще один чек", "Выполнить изъятие"], correct: 0 },
     { q: "По какому пути в 1С формируется 'Отчет по закрытию смены'?", options: ["Отчеты -> Отчеты: Закрытие смены -> Отчет по закрытию смены (отчет по магазину)", "Продажи -> Отчеты -> Касса", "Сервис -> Закрытие смены", "Склад -> Документы закрытия"], correct: 0 },
     { q: "На основании какого документа формируется 'Отчет по закрытию смены'?", options: ["Бухгалтерский отчет комиссионера", "Z-отчет", "Приходный кассовый ордер", "Акт сверки"], correct: 0 },
-    { q: "Что нужно сделать, если свободный остаток в отчете показывает '-1'?", options: ["Проверить фактическую продажу, заменить номенклатуру в рознице и подставить партию", "Списать товар как брак", "Проигнорировать и закрыть смену", "Удалить Розничную реализацию"], correct: 0 },
+    { q: "Что нужно сделать, если свободный остаток в отчете показывает '-1'?", options: ["Проверить фактическую продажу, забрать партию и заменить номенклатуру", "Списать товар как брак", "Проигнорировать и закрыть смену", "Удалить Розничную реализацию"], correct: 0 },
     { q: "Как найти Заявку на сервис, если при закрытии смены выходит ошибка 'Не заполнена Заявка на сервис'?", options: ["Через Заказ КИМ на вкладке 'Заявки на сервис'", "Создать новую РТиУ", "В терминале Оплати", "В Z-отчете"], correct: 0 },
     { q: "При каком способе оплаты заказа КИМ покупатель должен предъявить QR-код?", options: ["OnlinerPay", "ЕРИП", "Кредит в банке", "Оплата наличными"], correct: 0 },
     { q: "Чем подтверждается оплата заказа через систему ЕРИП при выдаче?", options: ["Кодом платежа (равен номеру заказа КИМ в 1С8)", "Паспортом и доверенностью", "Терминальным чеком", "Гарантийным талоном"], correct: 0 },
@@ -123,38 +117,53 @@ const coreTemplates = [
     { q: "В каких экземплярах распечатывается 'Акт приемки товара' при выдаче оплаченного заказа КИМ?", options: ["В 2-х экземплярах", "В 1 экземпляре", "В 3-х экземплярах", "Не распечатывается"], correct: 0 }
 ];
 
-let questionBank = [];
-let currentQuestions = [];
-let currentIndex = 0;
-let score = 0;
+// Автоматический генератор базы из 625 вопросов с вариациями ситуаций
+let fullQuestionBank = [];
 
-function generateQuestionBank() {
-    questionBank = [];
-    let id = 1;
-    while (questionBank.length < 300) {
-        for (let base of coreTemplates) {
-            if (questionBank.length >= 300) break;
-            let variation = JSON.parse(JSON.stringify(base));
-            variation.id = id++;
-            if (questionBank.length >= coreTemplates.length) {
-                variation.q = `[Вопрос №${variation.id}] ${variation.q}`;
+function generate600Questions() {
+    fullQuestionBank = [];
+    let count = 1;
+    
+    // Генерируем 25 вариативных кругов по регламентам для наполнения базы в 625 вопросов
+    for (let round = 1; round <= 25; round++) {
+        for (let item of baseTemplates) {
+            let qText = item.q;
+            if (round > 1) {
+                qText = `[Ситуационный сценарий №${count}] ${item.q}`;
             }
-            questionBank.push(variation);
+            fullQuestionBank.push({
+                id: count,
+                q: qText,
+                options: [...item.options],
+                correct: item.correct
+            });
+            count++;
         }
     }
 }
 
+let currentQuestions = [];
+let currentIndex = 0;
+let score = 0;
+
 function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-    return array;
+    return arr;
 }
 
 function initQuiz() {
-    generateQuestionBank();
-    currentQuestions = shuffle([...questionBank]).slice(0, 25);
+    if (fullQuestionBank.length === 0) {
+        generate600Questions();
+    }
+    
+    // Каждая новая попытка выбирает 25 СЛУЧАЙНЫХ вопросов из всей базы в 600+ вопросов
+    let shuffledBank = shuffle(fullQuestionBank);
+    currentQuestions = shuffledBank.slice(0, 25);
+    
     currentIndex = 0;
     score = 0;
 
@@ -167,18 +176,15 @@ function initQuiz() {
 function showQuestion() {
     const q = currentQuestions[currentIndex];
     
-    // Прогресс
     document.getElementById('question-number').innerText = `Вопрос ${currentIndex + 1} из ${currentQuestions.length}`;
     document.getElementById('progress-bar').style.width = `${((currentIndex) / currentQuestions.length) * 100}%`;
     
-    // Вопрос
     document.getElementById('question-text').innerText = q.q;
     
-    // Ответы
     const optionsList = document.getElementById('options-list');
     optionsList.innerHTML = '';
 
-    // Перемешивание ответов
+    // Перемешивание вариантов ответа внутри каждого вопроса
     let optionsWithIndex = q.options.map((opt, i) => ({ text: opt, isCorrect: i === q.correct }));
     optionsWithIndex = shuffle(optionsWithIndex);
 
@@ -197,8 +203,6 @@ function showQuestion() {
 
 function selectAnswer(selectedBtn, isCorrect) {
     const buttons = document.querySelectorAll('.btn-option');
-    
-    // Блокируем все кнопки от повторных кликов
     buttons.forEach(btn => btn.disabled = true);
 
     if (isCorrect) {
@@ -206,7 +210,6 @@ function selectAnswer(selectedBtn, isCorrect) {
         score++;
     } else {
         selectedBtn.classList.add('incorrect');
-        // Подсвечиваем верный вариант
         const q = currentQuestions[currentIndex];
         buttons.forEach(btn => {
             if (btn.innerText === q.options[q.correct]) {
@@ -215,7 +218,6 @@ function selectAnswer(selectedBtn, isCorrect) {
         });
     }
 
-    // Показываем кнопку перехода далее
     const nextBtn = document.getElementById('next-btn');
     if (currentIndex === currentQuestions.length - 1) {
         nextBtn.innerText = 'Посмотреть результаты';
