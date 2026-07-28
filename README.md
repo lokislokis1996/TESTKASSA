@@ -6,40 +6,95 @@
     <title>Тестирование: Закрытие смены и кассовые операции</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { font-size: 24px; color: #1a568c; text-align: center; margin-bottom: 20px; }
-        .stats { font-weight: bold; margin-bottom: 20px; color: #555; text-align: right; }
-        .question-card { margin-bottom: 25px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 6px; background-color: #fafafa; }
-        .question-text { font-weight: bold; margin-bottom: 12px; font-size: 16px; }
-        .options { list-style: none; padding: 0; }
-        .options li { margin-bottom: 8px; }
-        .options label { display: block; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: #fff; transition: 0.2s; }
-        .options label:hover { background-color: #eef5fc; }
-        .options input { margin-right: 10px; }
-        .btn { display: block; width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn:hover { background-color: #218838; }
-        .result-box { display: none; margin-top: 20px; padding: 20px; border-radius: 6px; text-align: center; }
-        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .fail { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .correct-answer { background-color: #d4edda !important; border-color: #28a745 !important; }
-        .incorrect-answer { background-color: #f8d7da !important; border-color: #dc3545 !important; }
+        .container { max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { font-size: 20px; color: #1a568c; text-align: center; margin-top: 0; margin-bottom: 20px; }
+        
+        /* Прогресс-бар */
+        .progress-container { background-color: #e0e0e0; border-radius: 10px; height: 10px; width: 100%; margin-bottom: 20px; overflow: hidden; }
+        .progress-bar { background-color: #28a745; height: 100%; width: 0%; transition: width 0.3s ease; }
+        .stats { font-size: 14px; font-weight: bold; color: #666; text-align: right; margin-bottom: 15px; }
+
+        /* Карточка вопроса */
+        .question-card { display: block; }
+        .question-text { font-weight: bold; margin-bottom: 20px; font-size: 18px; line-height: 1.4; color: #2c3e50; }
+        
+        /* Варианты ответов */
+        .options { list-style: none; padding: 0; margin: 0; }
+        .options li { margin-bottom: 12px; }
+        .btn-option { 
+            width: 100%; 
+            padding: 14px 16px; 
+            text-align: left; 
+            font-size: 15px; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 8px; 
+            background: #fff; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            color: #333;
+        }
+        .btn-option:hover:not([disabled]) { border-color: #3182ce; background-color: #ebf8ff; }
+        
+        /* Стили мгновенной проверки */
+        .btn-option.correct { background-color: #c6f6d5 !important; border-color: #38a169 !important; color: #22543d; font-weight: bold; }
+        .btn-option.incorrect { background-color: #fed7d7 !important; border-color: #e53e3e !important; color: #742a2a; }
+        
+        /* Кнопка навигации */
+        .action-btn { 
+            display: none; 
+            width: 100%; 
+            padding: 14px; 
+            background-color: #3182ce; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 20px; 
+            transition: background 0.2s;
+        }
+        .action-btn:hover { background-color: #2b6cb0; }
+
+        /* Экран результатов */
+        .result-box { display: none; text-align: center; padding: 10px; }
+        .result-box h2 { font-size: 24px; margin-bottom: 10px; }
+        .result-box p { font-size: 18px; margin-bottom: 25px; }
+        .success-title { color: #38a169; }
+        .fail-title { color: #e53e3e; }
+        .restart-btn { background-color: #28a745; }
+        .restart-btn:hover { background-color: #218838; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>Тест: Закрытие смены и кассовые операции</h1>
-    <div class="stats" id="quiz-info">Загрузка вопросов...</div>
-    <form id="quiz-form">
-        <div id="questions-container"></div>
-        <button type="button" class="btn" id="submit-btn" onclick="checkAnswers()">Завершить тест</button>
-        <button type="button" class="btn" id="restart-btn" style="display:none; background-color: #0056b3;" onclick="initQuiz()">Пройти заново</button>
-    </form>
-    <div id="result" class="result-box"></div>
+    
+    <div id="quiz-screen">
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="stats" id="question-number">Вопрос 1 из 25</div>
+
+        <div class="question-card">
+            <div class="question-text" id="question-text">Загрузка...</div>
+            <ul class="options" id="options-list"></ul>
+        </div>
+
+        <button class="action-btn" id="next-btn" onclick="nextQuestion()">Следующий вопрос</button>
+    </div>
+
+    <div id="result-screen" class="result-box">
+        <h2 id="result-title"></h2>
+        <p id="result-score"></p>
+        <button class="action-btn restart-btn" style="display:block;" onclick="initQuiz()">Пройти заново</button>
+    </div>
 </div>
 
 <script>
-// Генерация базы из 300 вопросов на основе предоставленных регламентов[span_0](start_span)[span_0](end_span)[span_1](start_span)[span_1](end_span)[span_2](start_span)[span_2](end_span)[span_3](start_span)[span_3](end_span)[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)[span_6](start_span)[span_6](end_span)[span_7](start_span)[span_7](end_span)[span_8](start_span)[span_8](end_span)[span_9](start_span)[span_9](end_span)
+// Шаблоны вопросов на основе регламентов
 const coreTemplates = [
     { q: "Какое значение должна всегда иметь 'Контрольная цифра' при детальной сверке?", options: ["0", "1", "Сумме Z-отчета", "100"], correct: 0 },
     { q: "Что ЗАПРЕЩЕНО делать кассиру при статусе «Отменен» у документа Розничная реализация в 1С?", options: ["Уходить домой", "Печатать Z-отчет", "Пересчитывать кассу", "Проводить РТиУ"], correct: 0 },
@@ -68,8 +123,11 @@ const coreTemplates = [
     { q: "В каких экземплярах распечатывается 'Акт приемки товара' при выдаче оплаченного заказа КИМ?", options: ["В 2-х экземплярах", "В 1 экземпляре", "В 3-х экземплярах", "Не распечатывается"], correct: 0 }
 ];
 
-// Автоматическое расширение базы до 300 уникальных вопросов
 let questionBank = [];
+let currentQuestions = [];
+let currentIndex = 0;
+let score = 0;
+
 function generateQuestionBank() {
     questionBank = [];
     let id = 1;
@@ -86,8 +144,6 @@ function generateQuestionBank() {
     }
 }
 
-let currentQuestions = [];
-
 function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -98,91 +154,104 @@ function shuffle(array) {
 
 function initQuiz() {
     generateQuestionBank();
-    // Выборка 25 случайных вопросов из базы в 300
-    let shuffledBank = shuffle([...questionBank]);
-    currentQuestions = shuffledBank.slice(0, 25);
+    currentQuestions = shuffle([...questionBank]).slice(0, 25);
+    currentIndex = 0;
+    score = 0;
 
-    const container = document.getElementById('questions-container');
-    container.innerHTML = '';
-    
-    document.getElementById('result').style.display = 'none';
-    document.getElementById('submit-btn').style.display = 'block';
-    document.getElementById('restart-btn').style.display = 'none';
-    document.getElementById('quiz-info').innerText = `Всего вопросов в тесте: ${currentQuestions.length} (выбрано из базы в 300 вопросов)`;
+    document.getElementById('quiz-screen').style.display = 'block';
+    document.getElementById('result-screen').style.display = 'none';
 
-    currentQuestions.forEach((q, index) => {
-        let qCard = document.createElement('div');
-        qCard.className = 'question-card';
-        
-        let qText = document.createElement('div');
-        qText.className = 'question-text';
-        qText.innerText = `${index + 1}. ${q.q}`;
-        qCard.appendChild(qText);
-
-        let optionsList = document.createElement('ul');
-        optionsList.className = 'options';
-
-        // Перемешивание вариантов
-        let optionsWithIndex = q.options.map((opt, i) => ({ text: opt, isCorrect: i === q.correct }));
-        optionsWithIndex = shuffle(optionsWithIndex);
-
-        optionsWithIndex.forEach((optObj, oIndex) => {
-            let li = document.createElement('li');
-            let label = document.createElement('label');
-            label.id = `label-${index}-${oIndex}`;
-            
-            let input = document.createElement('input');
-            input.type = 'radio';
-            input.name = `question-${index}`;
-            input.value = optObj.isCorrect ? "1" : "0";
-
-            label.appendChild(input);
-            label.appendChild(document.createTextNode(optObj.text));
-            li.appendChild(label);
-            optionsList.appendChild(li);
-        });
-
-        qCard.appendChild(optionsList);
-        container.appendChild(qCard);
-    });
+    showQuestion();
 }
 
-function checkAnswers() {
-    let score = 0;
-    currentQuestions.forEach((q, index) => {
-        let selected = document.querySelector(`input[name="question-${index}"]:checked`);
-        let radios = document.getElementsByName(`question-${index}`);
-        
-        radios.forEach((radio) => {
-            let label = radio.parentElement;
-            if (radio.value === "1") {
-                label.classList.add('correct-answer');
-            }
-            if (radio.checked && radio.value === "0") {
-                label.classList.add('incorrect-answer');
-            }
-        });
+function showQuestion() {
+    const q = currentQuestions[currentIndex];
+    
+    // Прогресс
+    document.getElementById('question-number').innerText = `Вопрос ${currentIndex + 1} из ${currentQuestions.length}`;
+    document.getElementById('progress-bar').style.width = `${((currentIndex) / currentQuestions.length) * 100}%`;
+    
+    // Вопрос
+    document.getElementById('question-text').innerText = q.q;
+    
+    // Ответы
+    const optionsList = document.getElementById('options-list');
+    optionsList.innerHTML = '';
 
-        if (selected && selected.value === "1") {
-            score++;
-        }
+    // Перемешивание ответов
+    let optionsWithIndex = q.options.map((opt, i) => ({ text: opt, isCorrect: i === q.correct }));
+    optionsWithIndex = shuffle(optionsWithIndex);
+
+    optionsWithIndex.forEach(optObj => {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.className = 'btn-option';
+        btn.innerText = optObj.text;
+        btn.onclick = () => selectAnswer(btn, optObj.isCorrect);
+        li.appendChild(btn);
+        optionsList.appendChild(li);
     });
 
-    const resultBox = document.getElementById('result');
-    resultBox.style.display = 'block';
-    let percent = Math.round((score / currentQuestions.length) * 100);
+    document.getElementById('next-btn').style.display = 'none';
+}
+
+function selectAnswer(selectedBtn, isCorrect) {
+    const buttons = document.querySelectorAll('.btn-option');
     
-    if (percent >= 80) {
-        resultBox.className = 'result-box success';
-        resultBox.innerHTML = `<h3>Тест успешно сдан!</h3><p>Ваш результат: ${score} из ${currentQuestions.length} (${percent}%)</p>`;
+    // Блокируем все кнопки от повторных кликов
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (isCorrect) {
+        selectedBtn.classList.add('correct');
+        score++;
     } else {
-        resultBox.className = 'result-box fail';
-        resultBox.innerHTML = `<h3>Тест не сдан</h3><p>Ваш результат: ${score} из ${currentQuestions.length} (${percent}%). Необходимый минимум — 80%.</p>`;
+        selectedBtn.classList.add('incorrect');
+        // Подсвечиваем верный вариант
+        const q = currentQuestions[currentIndex];
+        buttons.forEach(btn => {
+            if (btn.innerText === q.options[q.correct]) {
+                btn.classList.add('correct');
+            }
+        });
     }
 
-    document.getElementById('submit-btn').style.display = 'none';
-    document.getElementById('restart-btn').style.display = 'block';
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    // Показываем кнопку перехода далее
+    const nextBtn = document.getElementById('next-btn');
+    if (currentIndex === currentQuestions.length - 1) {
+        nextBtn.innerText = 'Посмотреть результаты';
+    } else {
+        nextBtn.innerText = 'Следующий вопрос';
+    }
+    nextBtn.style.display = 'block';
+}
+
+function nextQuestion() {
+    currentIndex++;
+    if (currentIndex < currentQuestions.length) {
+        showQuestion();
+    } else {
+        showResults();
+    }
+}
+
+function showResults() {
+    document.getElementById('quiz-screen').style.display = 'none';
+    const resultScreen = document.getElementById('result-screen');
+    resultScreen.style.display = 'block';
+
+    const percent = Math.round((score / currentQuestions.length) * 100);
+    const title = document.getElementById('result-title');
+    const scoreText = document.getElementById('result-score');
+
+    if (percent >= 80) {
+        title.innerText = 'Тест успешно сдан!';
+        title.className = 'success-title';
+    } else {
+        title.innerText = 'Тест не сдан';
+        title.className = 'fail-title';
+    }
+
+    scoreText.innerText = `Ваш результат: ${score} из ${currentQuestions.length} (${percent}%). Проходной балл — 80%.`;
 }
 
 window.onload = initQuiz;
