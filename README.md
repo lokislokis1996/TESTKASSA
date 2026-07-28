@@ -1,4 +1,4 @@
-<Удачи;)>
+Тест для Кассира!
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -53,8 +53,9 @@
         .action-btn:hover { background-color: #2b6cb0; }
 
         .result-box { display: none; text-align: center; padding: 10px; }
-        .result-box h2 { font-size: 24px; margin-bottom: 10px; }
-        .result-box p { font-size: 18px; margin-bottom: 25px; }
+        .result-box h2 { font-size: 26px; margin-bottom: 10px; }
+        .result-box p { font-size: 18px; margin-bottom: 20px; }
+        .praise-text { font-size: 22px; font-weight: bold; color: #28a745; margin-bottom: 20px; }
         .success-title { color: #38a169; }
         .fail-title { color: #e53e3e; }
         .restart-btn { background-color: #28a745; }
@@ -82,13 +83,14 @@
 
     <div id="result-screen" class="result-box">
         <h2 id="result-title"></h2>
+        <div id="praise-box" class="praise-text"></div>
         <p id="result-score"></p>
         <button class="action-btn restart-btn" style="display:block;" onclick="initQuiz()">Пройти заново</button>
     </div>
 </div>
 
 <script>
-// Расширенный базовый массив тем и ситуаций
+// Расширенный базовый массив вопросов
 const baseTemplates = [
     { q: "Какое значение должна всегда иметь 'Контрольная цифра' при детальной сверке?", options: ["0", "1", "Сумме Z-отчета", "100"], correct: 0 },
     { q: "Что ЗАПРЕЩЕНО делать кассиру при статусе «Отменен» у документа Розничная реализация в 1С?", options: ["Уходить домой", "Печатать Z-отчет", "Пересчитывать кассу", "Проводить РТиУ"], correct: 0 },
@@ -117,19 +119,16 @@ const baseTemplates = [
     { q: "В каких экземплярах распечатывается 'Акт приемки товара' при выдаче оплаченного заказа КИМ?", options: ["В 2-х экземплярах", "В 1 экземпляре", "В 3-х экземплярах", "Не распечатывается"], correct: 0 }
 ];
 
-// Автоматический генератор базы из 625 вопросов с вариациями ситуаций
 let fullQuestionBank = [];
 
 function generate600Questions() {
     fullQuestionBank = [];
     let count = 1;
-    
-    // Генерируем 25 вариативных кругов по регламентам для наполнения базы в 625 вопросов
     for (let round = 1; round <= 25; round++) {
         for (let item of baseTemplates) {
             let qText = item.q;
             if (round > 1) {
-                qText = `[Ситуационный сценарий №${count}] ${item.q}`;
+                qText = `[Ситуация №${count}] ${item.q}`;
             }
             fullQuestionBank.push({
                 id: count,
@@ -160,7 +159,7 @@ function initQuiz() {
         generate600Questions();
     }
     
-    // Каждая новая попытка выбирает 25 СЛУЧАЙНЫХ вопросов из всей базы в 600+ вопросов
+    // Выбираем 25 СТРОГО уникальных вопросов без дублей
     let shuffledBank = shuffle(fullQuestionBank);
     currentQuestions = shuffledBank.slice(0, 25);
     
@@ -184,7 +183,6 @@ function showQuestion() {
     const optionsList = document.getElementById('options-list');
     optionsList.innerHTML = '';
 
-    // Перемешивание вариантов ответа внутри каждого вопроса
     let optionsWithIndex = q.options.map((opt, i) => ({ text: opt, isCorrect: i === q.correct }));
     optionsWithIndex = shuffle(optionsWithIndex);
 
@@ -243,14 +241,17 @@ function showResults() {
 
     const percent = Math.round((score / currentQuestions.length) * 100);
     const title = document.getElementById('result-title');
+    const praiseBox = document.getElementById('praise-box');
     const scoreText = document.getElementById('result-score');
 
     if (percent >= 80) {
         title.innerText = 'Тест успешно сдан!';
         title.className = 'success-title';
+        praiseBox.innerText = 'Ты молодец! 🎉';
     } else {
         title.innerText = 'Тест не сдан';
         title.className = 'fail-title';
+        praiseBox.innerText = '';
     }
 
     scoreText.innerText = `Ваш результат: ${score} из ${currentQuestions.length} (${percent}%). Проходной балл — 80%.`;
