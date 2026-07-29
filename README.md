@@ -81,25 +81,49 @@
             border-radius: 6px;
             cursor: pointer;
             transition: background 0.2s;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             background-color: var(--primary-dark);
+        }
+
+        .btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #7f8c8d;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #616e6f;
         }
 
         .question-card {
             margin-bottom: 25px;
-            padding: 15px;
+            padding: 20px;
             background: #fafafa;
             border-radius: 8px;
             border-left: 4px solid var(--primary);
         }
 
-        .question-title {
-            font-size: 16px;
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
             font-weight: 600;
-            margin-bottom: 12px;
+        }
+
+        .question-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            line-height: 1.4;
         }
 
         .options-list {
@@ -109,20 +133,19 @@
         }
 
         .option-item {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .option-label {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 14px;
+            padding: 12px 16px;
             background: white;
             border: 1px solid var(--border);
             border-radius: 6px;
             cursor: pointer;
             transition: border-color 0.2s, background 0.2s;
-            position: relative;
         }
 
         .option-content {
@@ -137,9 +160,10 @@
 
         .option-label input {
             margin-right: 12px;
+            width: 18px;
+            height: 18px;
         }
 
-        /* Стилевое оформление правильного и неправильного ответа */
         .option-label.correct {
             background-color: var(--success-bg) !important;
             border-color: var(--success) !important;
@@ -160,7 +184,7 @@
 
         .status-icon {
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
         }
 
         .correct .status-icon {
@@ -172,10 +196,10 @@
         }
 
         .progress-bar {
-            height: 6px;
+            height: 8px;
             background: var(--border);
-            border-radius: 3px;
-            margin-bottom: 20px;
+            border-radius: 4px;
+            margin-bottom: 25px;
             overflow: hidden;
         }
 
@@ -186,26 +210,57 @@
             transition: width 0.3s;
         }
 
-        .result-score {
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
             margin: 20px 0;
         }
 
+        .stat-box {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            background: #fafafa;
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .stat-correct .stat-value { color: var(--success); }
+        .stat-incorrect .stat-value { color: var(--danger); }
+        .stat-total .stat-value { color: var(--primary); }
+
+        .result-status {
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+        }
+
         .review-item {
-            padding: 10px;
-            margin-bottom: 10px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
             border-radius: 6px;
         }
 
         .review-correct {
-            background-color: #e8f8f0;
+            background-color: var(--success-bg);
             border: 1px solid var(--success);
         }
 
         .review-incorrect {
-            background-color: #fde8e8;
+            background-color: var(--danger-bg);
             border: 1px solid var(--danger);
         }
     </style>
@@ -223,10 +278,11 @@
         <h2>Инструкция к тестированию</h2>
         <ul>
             <li>Вам предстоит ответить на <b>25 случайных вопросов</b> из общей базы.</li>
-            <li>При выборе ответа система <b>сразу покажет, правильный он или нет</b>.</li>
-            <li>На прохождение теста отведен строго ограниченный таймер: <b>25 минут</b>.</li>
-            <li>Вопросы выбираются без повторений при каждой новой попытке.</li>
-            <li>Для сдачи теста необходимо набрать не менее 80% правильных ответов.</li>
+            <li>При выборе ответа система <b>сразу подсвечивает результат</b>.</li>
+            <li>Вопросы идут <b>последовательно один за другим</b>.</li>
+            <li>На прохождение теста отведен таймер: <b>25 минут</b>.</li>
+            <li>Все вопросы и варианты ответов <b>случайно перемешиваются</b> при каждом новом тесте.</li>
+            <li>Для сдачи теста необходимо набрать не менее <b>80% правильных ответов (20 из 25)</b>.</li>
         </ul>
         <button class="btn" onclick="startTest()">Начать тест</button>
     </div>
@@ -236,274 +292,343 @@
         <div class="progress-bar">
             <div class="progress-fill" id="progress"></div>
         </div>
-        <form id="quiz-form">
-            <div id="questions-container"></div>
-            <button type="button" class="btn" onclick="submitTest()">Завершить и отправить</button>
-        </form>
+        
+        <div id="single-question-container"></div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-secondary" id="btn-prev" onclick="prevQuestion()" disabled>Назад</button>
+            <button class="btn" id="btn-next" onclick="nextQuestion()" disabled>Далее</button>
+        </div>
     </div>
 
     <!-- Экран результатов -->
     <div id="result-screen" class="result-screen">
         <h2>Результаты тестирования</h2>
-        <div class="result-score" id="score-text"></div>
+        
+        <div class="result-status" id="result-status-text"></div>
+
+        <div class="stats-grid">
+            <div class="stat-box stat-total">
+                <div>Всего вопросов</div>
+                <div class="stat-value" id="stat-total">0</div>
+            </div>
+            <div class="stat-box stat-correct">
+                <div>Правильных</div>
+                <div class="stat-value" id="stat-correct">0</div>
+            </div>
+            <div class="stat-box stat-incorrect">
+                <div>Неправильных</div>
+                <div class="stat-value" id="stat-incorrect">0</div>
+            </div>
+        </div>
+
+        <h3>Детализация ответов:</h3>
         <div id="review-container"></div>
+        
         <button class="btn" onclick="restartTest()">Пройти повторно (новые вопросы)</button>
     </div>
 </div>
 
 <script>
-// ГЕНЕРАТОР БАЗЫ ВОПРОСОВ
+// ГЕНЕРАТОР БАЗЫ ВОПРОСОВ (Расширенный список уникальных вопросов)
 const baseTemplates = [
-  {
-    "id": 30,
-    "type": "single_choice",
-    "question": "Что следует сделать, если документы по аренде/лизингу созданы и проведены, но ошибка 2.9 при закрытии смены всё равно возникает?",
-    "options": [
-      "Оставить обращение на help и продублировать звонком",
-      "Удалить заказ КИМ",
-      "Перепровести смену через 2 часа",
-      "Выполнить инвентаризацию склада"
-    ],
-    "answer": "Оставить обращение на help и продублировать звонком"
-  },
-  {
+    {
         q: "Чему всегда должна быть равна «Контрольная цифра» в отчете по закрытию смены?",
         options: ["0", "1", "Сумме наличных денег", "Сумме безналичных продаж"],
-        answer: 0
+        answer: "0"
     },
     {
-        q: "При какам статусе документа «Розничная реализация» кассиру СТРОГО запрещено уходить домой?",
-        options: ["Проведен", "Не подтвержден", "Отменен", "Черновик"],
-        answer: 2
+        q: "При каком статусе документа «Розничная реализация» кассиру СТРОГО запрещено уходить домой?",
+        options: ["Отменен", "Проведен", "Не подтвержден", "Черновик"],
+        answer: "Отменен"
     },
     {
         q: "Каким действием кассир должен завершить процедуру закрытия смены на кассовом аппарате?",
-        options: ["Оставить деньги на завтра", "Подтвердить всегда изъятие в 0", "Изъять ровно половину суммы", "Снять только Х-отчет"],
-        answer: 1
+        options: ["Подтвердить всегда изъятие в 0", "Оставить деньги на завтра", "Изъять ровно половину суммы", "Снять только Х-отчет"],
+        answer: "Подтвердить всегда изъятие в 0"
     },
     {
         q: "Где в программе КИТ проверить наличие последнего оплаченного чека перед закрытием смены?",
-        options: ["Сервис -> Отчеты", "КИТ - Чеки ККМ", "Журнал БСО", "Настройки принтера"],
-        answer: 1
+        options: ["КИТ - Чеки ККМ", "Сервис -> Отчеты", "Журнал БСО", "Настройки принтера"],
+        answer: "КИТ - Чеки ККМ"
     },
     {
         q: "Какая операция на кассе применяется, если клиент возвращает товар «сегодня купил — сегодня вернул»?",
-        options: ["Произвольный возврат", "Возврат по чеку (день в день)", "Изъятие", "Акт утилизации"],
-        answer: 1
+        options: ["Возврат по чеку (день в день)", "Произвольный возврат", "Изъятие", "Акт утилизации"],
+        answer: "Возврат по чеку (день в день)"
     },
     {
         q: "В каком случае при оформлении возврата за товар/услугу применяется «Произвольный возврат»?",
-        options: ["Товар куплен сегодня", "Товар куплен ранее текущего дня", "При оплате картой сотрудника", "Товар бракованный"],
-        answer: 1
+        options: ["Товар куплен ранее текущего дня", "Товар куплен сегодня", "При оплате картой сотрудника", "Товар бракованный"],
+        answer: "Товар куплен ранее текущего дня"
     },
     {
         q: "Какова фиксированная стоимость услуги «Доставка на дом» независимо от стоимости покупки?",
-        options: ["Бесплатно", "10.00 бел. рублей", "19.00 бел. рублей", "25.00 бел. рублей"],
-        answer: 2
+        options: ["19.00 бел. рублей", "Бесплатно", "10.00 бел. рублей", "25.00 бел. рублей"],
+        answer: "19.00 бел. рублей"
     },
     {
         q: "Какой лимит оплаты бонусами установлен для «Премиум счета» Бонусной карты работника?",
-        options: ["Не более 50%", "Не более 70%", "Не более 99%", "100%"],
-        answer: 2
+        options: ["Не более 99%", "Не более 50%", "Не более 70%", "100%"],
+        answer: "Не более 99%"
     },
     {
         q: "Какой лимит оплаты бонусами установлен для «Обычного счета» Бонусной карты работника?",
-        options: ["Не более 30%", "Не более 50%", "Не более 70%", "Не более 99%"],
-        answer: 2
+        options: ["Не более 70%", "Не более 30%", "Не более 50%", "Не более 99%"],
+        answer: "Не более 70%"
     },
     {
         q: "Каков срок действия бонусов, начисляемых на счет «Премиум» Бонусной карты работника?",
-        options: ["10 дней", "14 дней", "30 календарных дней", "1 год"],
-        answer: 2
+        options: ["30 календарных дней", "10 дней", "14 дней", "1 год"],
+        answer: "30 календарных дней"
     },
     {
         q: "Разрешено ли использовать Бонусную карту работника при покупке товара в кредит/рассрочку?",
-        options: ["Да, без ограничений", "Запрещено", "Только с разрешения заведующего", "Только для товаров до 100 рублей"],
-        answer: 1
+        options: ["Запрещено", "Да, без ограничений", "Только с разрешения заведующего", "Только для товаров до 100 рублей"],
+        answer: "Запрещено"
     },
     {
         q: "Что необходимо сделать, если при снятии Х-отчета обнаружен свободный остаток «-1» в розничной реализации?",
-        options: ["Заблокировать кассу", "Удалить чек", "Заменить номенклатуру в рознице и подставить партию товара", "Оформить утилизацию"],
-        answer: 2
+        options: ["Заменить номенклатуру в рознице и подставить партию товара", "Заблокировать кассу", "Удалить чек", "Оформить утилизацию"],
+        answer: "Заменить номенклатуру в рознице и подставить партию товара"
     },
     {
-        q: "Какое требование к кассе обязательна при возврате чека «день в день»?",
-        options: ["На любой свободной кассе магазина", "Строго на той кассе, где производился расчет", "На кассе администратора", "Только в 1С"],
-        answer: 1
+        q: "Какое требование к кассе обязательно при возврате чека «день в день»?",
+        options: ["Строго на той кассе, где производился расчет", "На любой свободной кассе магазина", "На кассе администратора", "Только в 1С"],
+        answer: "Строго на той кассе, где производился расчет"
     },
     {
         q: "При оформлении возврата маркированного товара СИ, что запрашивает касса в первую очередь при отсутствии марки в ПЧ?",
-        options: ["Паспорт покупателя", "Сканирование штрихкода товара (EAN13)", "Номер договора", "Код PATIO5"],
-        answer: 1
+        options: ["Сканирование штрихкода товара (EAN13)", "Паспорт покупателя", "Номер договора", "Код PATIO5"],
+        answer: "Сканирование штрихкода товара (EAN13)"
     },
     {
-        q: "Что обязательна должна содержать доверенность от организации при получении товара по безналичному расчету?",
+        q: "Что обязательно должна содержать доверенность от организации при получении товара по безналичному расчету?",
         options: ["Подпись директора, гл. бухгалтера, наименование, количество, дату и срок действия", "Только печать компании", "Только подпись водителя", "Чек ККМ"],
-        answer: 0
+        answer: "Подпись директора, гл. бухгалтера, наименование, количество, дату и срок действия"
     },
     {
         q: "Какое условие по весу товара установлено для сотрудников службы доставки при переносе на расстояние более 50 метров?",
-        options: ["До 5 кг", "До 10 кг", "Не осуществляют перенос весом свыше 15 кг на расстояние > 50 м", "Ограничений нет"],
-        answer: 2
+        options: ["Не осуществляют перенос весом свыше 15 кг на расстояние > 50 м", "До 5 кг", "До 10 кг", "Ограничений нет"],
+        answer: "Не осуществляют перенос весом свыше 15 кг на расстояние > 50 м"
     },
     {
         q: "На какой радиус от границы города распространяется зона стандартной доставки регионов?",
-        options: ["До 10 км", "До 30 км", "До 60 км", "До 100 км"],
-        answer: 2
+        options: ["До 60 км", "До 10 км", "До 30 км", "До 100 км"],
+        answer: "До 60 км"
     },
     {
         q: "В каком статусе должна находиться задача в рабочем месте СПВ после корректного сканирования маркировки в МП?",
-        options: ["К выдаче", "Выдан", "К доставке", "Отменен"],
-        answer: 1
+        options: ["Выдан", "К выдаче", "К доставке", "Отменен"],
+        answer: "Выдан"
     },
     {
         q: "Где формируется документ «Отчет по закрытию смены» в 1С8?",
-        options: ["Продажи -> Отчеты", "Отчеты -> Отчеты: Закрытие смены -> Отчет по закрытию смены", "Сервис -> Касса", "Склад -> Документы"],
-        answer: 1
+        options: ["Отчеты -> Отчеты: Закрытие смены -> Отчет по закрытию смены", "Продажи -> Отчеты", "Сервис -> Касса", "Склад -> Документы"],
+        answer: "Отчеты -> Отчеты: Закрытие смены -> Отчет по закрытию смены"
     },
     {
         q: "Что нужно сделать при обнаружении ошибки «Задвоение чека» в 1С?",
-        options: ["Провести повторный чек", "Удалить дублирующую строку", "Изменить вид оплаты на сертификат", "Сделать произвольный возврат"],
-        answer: 1
+        options: ["Удалить дублирующую строку", "Провести повторный чек", "Изменить вид оплаты на сертификат", "Сделать произвольный возврат"],
+        answer: "Удалить дублирующую строку"
     },
     {
         q: "При продаже со «Склада образцов» какой признак автоматически проставляется при выписке ПЧ?",
-        options: ["Самовывоз", "Доставка", "Утилизация", "Срочно"],
-        answer: 1
+        options: ["Доставка", "Самовывоз", "Утилизация", "Срочно"],
+        answer: "Доставка"
     },
     {
         q: "Какой короткий код используется для вызова службы коррекции цены при произвольном возврате за услугу?",
-        options: ["11111", "55555", "77777", "99999"],
-        answer: 1
+        options: ["55555", "11111", "77777", "99999"],
+        answer: "55555"
     },
     {
         q: "Через какую программу вносится код подтверждения из СМС при выписке заказа по безналу?",
-        options: ["1С8 УТ", "Терминал МКП (mkp.patio-minsk.by)", "КИТ", "Кристалл"],
-        answer: 1
+        options: ["Терминал МКП (mkp.patio-minsk.by)", "1С8 УТ", "КИТ", "Кристалл"],
+        answer: "Терминал МКП (mkp.patio-minsk.by)"
     },
     {
         q: "Когда осуществляется утилизация отходов бытовой техники из дома покупателя?",
-        options: ["В любое время по согласованию", "В момент доставки нового товара", "Строго за день до доставки", "После проверки чека"],
-        answer: 1
+        options: ["В момент доставки нового товара", "В любое время по согласованию", "Строго за день до доставки", "После проверки чека"],
+        answer: "В момент доставки нового товара"
     },
     {
         q: "Как отображается номенклатура, требующая заполнения данных по индивидуальному учету (ИУ) в КИТ и УТ?",
-        options: ["Красным цветом", "Подчеркнутым шрифтом", "Жирным курсивом", "Зачеркнутым текстом"],
-        answer: 2
+        options: ["Жирным курсивом", "Красным цветом", "Подчеркнутым шрифтом", "Зачеркнутым текстом"],
+        answer: "Жирным курсивом"
+    },
+    {
+        q: "В какое время рабочего дня допускается распределять нераспределенный товар в розничной реализации?",
+        options: ["В любое время рабочего дня", "Только строго перед закрытием смены", "Только в начале рабочего дня", "Только после согласования с Helpdesk"],
+        answer: "В любое время рабочего дня"
+    },
+    {
+        q: "Какой отчет рекомендуется открыть для проверки резервов и наличия товара при распределении розницы?",
+        options: ["«Анализ доступности товаров на складах»", "«Ведомость по товарам на складах»", "«Отчет по остаткам и ценам»", "«Журнал проводок»"],
+        answer: "«Анализ доступности товаров на складах»"
+    },
+    {
+        q: "Какой номер необходимо скопировать из заказа КИМ для поиска предварительного чека в КИТ при закрытии неактуального заказа?",
+        options: ["Номер BPM", "Номер РТиУ", "Номер штрихкода", "Артикул номенклатуры"],
+        answer: "Номер BPM"
+    },
+    {
+        q: "Что означает свободный остаток «-1» при формировании отчета анализа доступности?",
+        options: ["Продали то, чего нет на остатках (пробито вручную)", "Товар зарезервирован другим магазином", "Сбой системы 1С", "Товар в пути"],
+        answer: "Продали то, чего нет на остатках (пробито вручную)"
+    },
+    {
+        q: "Какое качество автоматически проставляется в розничной реализации при пробитии товара по кассе без ПЧ?",
+        options: ["Полка (Новый)", "Витрина", "Уцененный", "УНМ"],
+        answer: "Полка (Новый)"
     }
 ];
 
-function generateQuestionPool() {
-    let pool = [];
-    let id = 1;
-    for (let i = 0; i < 40; i++) {
-        baseTemplates.forEach((template) => {
-            pool.push({
-                id: id++,
-                q: `[Вопрос №${id}] ${template.q}`,
-                options: [...template.options],
-                answer: template.answer
-            });
-        });
+// Вспомогательная функция перемешивания массивов (Fisher-Yates)
+function shuffle(array) {
+    let currentIndex = array.length, randomIndex;
+    let newArray = [...array];
+    while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [newArray[currentIndex], newArray[randomIndex]] = [newArray[randomIndex], newArray[currentIndex]];
     }
-    return pool;
+    return newArray;
 }
 
-const fullQuestionPool = generateQuestionPool();
 let currentQuestions = [];
+let userAnswers = []; // Сохраняет индекс выбранного ответа для каждого вопроса
+let currentQuestionIndex = 0;
 let timerInterval;
 let timeLeft = 25 * 60;
 
 function startTest() {
     document.getElementById('start-screen').classList.remove('active');
     document.getElementById('quiz-screen').classList.add('active');
-    
-    let shuffled = [...fullQuestionPool].sort(() => 0.5 - Math.random());
-    currentQuestions = shuffled.slice(0, 25);
 
-    renderQuestions();
+    // Формируем уникальную выборку из 25 случайно перемешанных вопросов
+    const shuffledTemplates = shuffle(baseTemplates);
+    const selected = shuffledTemplates.slice(0, 25);
+
+    currentQuestions = selected.map((item, idx) => {
+        const shuffledOptions = shuffle(item.options);
+        return {
+            id: idx + 1,
+            q: item.q,
+            options: shuffledOptions,
+            correctAnswer: item.answer
+        };
+    });
+
+    userAnswers = new Array(currentQuestions.length).fill(null);
+    currentQuestionIndex = 0;
+
+    renderCurrentQuestion();
     startTimer();
 }
 
-function renderQuestions() {
-    const container = document.getElementById('questions-container');
-    container.innerHTML = '';
+function renderCurrentQuestion() {
+    const container = document.getElementById('single-question-container');
+    const q = currentQuestions[currentQuestionIndex];
+    const selectedAnswerIndex = userAnswers[currentQuestionIndex];
 
-    currentQuestions.forEach((q, index) => {
-        const qCard = document.createElement('div');
-        qCard.className = 'question-card';
-        
-        let optionsHTML = '';
-        q.options.forEach((opt, optIndex) => {
-            optionsHTML += `
-                <li class="option-item">
-                    <label class="option-label" id="label_${index}_${optIndex}">
-                        <div class="option-content">
-                            <input type="radio" name="question_${index}" value="${optIndex}" onchange="handleAnswerSelect(${index}, ${optIndex})">
-                            <span>${opt}</span>
-                        </div>
-                        <span class="status-icon" id="icon_${index}_${optIndex}"></span>
-                    </label>
-                </li>
-            `;
-        });
+    let optionsHTML = '';
+    q.options.forEach((opt, optIndex) => {
+        let labelClass = 'option-label';
+        let statusIcon = '';
+        let isChecked = selectedAnswerIndex === optIndex ? 'checked' : '';
 
-        qCard.innerHTML = `
-            <div class="question-title">${index + 1}. ${q.q}</div>
-            <ul class="options-list">${optionsHTML}</ul>
+        // Если ответ на этот вопрос УЖЕ был выбран
+        if (selectedAnswerIndex !== null) {
+            labelClass += ' disabled';
+            if (opt === q.correctAnswer) {
+                labelClass += ' correct';
+                statusIcon = '<span class="status-icon">✓</span>';
+            }
+            if (selectedAnswerIndex === optIndex && opt !== q.correctAnswer) {
+                labelClass += ' incorrect';
+                statusIcon = '<span class="status-icon">✗</span>';
+            }
+        }
+
+        optionsHTML += `
+            <li class="option-item">
+                <label class="${labelClass}" id="label_${optIndex}">
+                    <div class="option-content">
+                        <input type="radio" name="current_option" value="${optIndex}" ${isChecked} ${selectedAnswerIndex !== null ? 'disabled' : ''} onchange="selectOption(${optIndex})">
+                        <span>${opt}</span>
+                    </div>
+                    ${statusIcon}
+                </label>
+            </li>
         `;
-        container.appendChild(qCard);
-    });
-}
-
-// Функция мгновенной проверки при выборе ответа
-function handleAnswerSelect(qIndex, selectedOptIndex) {
-    const correctAnswer = currentQuestions[qIndex].answer;
-    
-    // Получаем все радиокнопки для текущего вопроса и отключаем их
-    const radios = document.getElementsByName(`question_${qIndex}`);
-    radios.forEach((radio, idx) => {
-        radio.disabled = true;
-        const label = document.getElementById(`label_${qIndex}_${idx}`);
-        label.classList.add('disabled');
-        
-        // Если это ПРАВИЛЬНЫЙ вариант - подсвечиваем зеленым
-        if (idx === correctAnswer) {
-            label.classList.add('correct');
-            document.getElementById(`icon_${qIndex}_${idx}`).innerHTML = '✓';
-        }
-        // Если пользователь ВЫБРАЛ НЕПРАВИЛЬНЫЙ вариант - подсвечиваем красным
-        if (idx === selectedOptIndex && selectedOptIndex !== correctAnswer) {
-            label.classList.add('incorrect');
-            document.getElementById(`icon_${qIndex}_${idx}`).innerHTML = '✗';
-        }
     });
 
-    updateProgress();
+    container.innerHTML = `
+        <div class="question-card">
+            <div class="question-header">
+                <span>Вопрос ${currentQuestionIndex + 1} из ${currentQuestions.length}</span>
+            </div>
+            <div class="question-title">${q.q}</div>
+            <ul class="options-list">${optionsHTML}</ul>
+        </div>
+    `;
+
+    updateControls();
 }
 
-function updateProgress() {
-    const form = document.getElementById('quiz-form');
-    const formData = new FormData(form);
-    let answeredCount = 0;
-    
-    for (let i = 0; i < currentQuestions.length; i++) {
-        if (formData.has(`question_${i}`)) answeredCount++;
-    }
+function selectOption(optIndex) {
+    if (userAnswers[currentQuestionIndex] !== null) return; // Нельзя менять уже сделанный выбор
 
-    const progressPercent = (answeredCount / currentQuestions.length) * 100;
+    userAnswers[currentQuestionIndex] = optIndex;
+    renderCurrentQuestion(); // Перерисуем для отображения подсветки (зеленый/красный)
+}
+
+function updateControls() {
+    // Обновляем прогресс-бар
+    const progressPercent = ((currentQuestionIndex + 1) / currentQuestions.length) * 100;
     document.getElementById('progress').style.width = `${progressPercent}%`;
+
+    // Состояние кнопок
+    document.getElementById('btn-prev').disabled = currentQuestionIndex === 0;
+    
+    const nextBtn = document.getElementById('btn-next');
+    const isAnswered = userAnswers[currentQuestionIndex] !== null;
+
+    if (currentQuestionIndex === currentQuestions.length - 1) {
+        nextBtn.innerText = 'Завершить тест';
+        nextBtn.disabled = !isAnswered;
+    } else {
+        nextBtn.innerText = 'Далее';
+        nextBtn.disabled = !isAnswered;
+    }
+}
+
+function nextQuestion() {
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+        currentQuestionIndex++;
+        renderCurrentQuestion();
+    } else {
+        submitTest();
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderCurrentQuestion();
+    }
 }
 
 function startTimer() {
     timeLeft = 25 * 60;
     clearInterval(timerInterval);
-    
+
     timerInterval = setInterval(() => {
         timeLeft--;
         let minutes = Math.floor(timeLeft / 60);
         let seconds = timeLeft % 60;
-        
+
         document.getElementById('timer').innerText = 
             `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 
@@ -517,37 +642,48 @@ function startTimer() {
 
 function submitTest() {
     clearInterval(timerInterval);
-    const form = document.getElementById('quiz-form');
-    const formData = new FormData(form);
-    
-    let score = 0;
+
+    let correctCount = 0;
+    let incorrectCount = 0;
     const reviewContainer = document.getElementById('review-container');
     reviewContainer.innerHTML = '';
 
     currentQuestions.forEach((q, index) => {
-        const selectedOption = formData.get(`question_${index}`);
-        const isCorrect = selectedOption !== null && parseInt(selectedOption) === q.answer;
-        
-        if (isCorrect) score++;
+        const selectedOptIndex = userAnswers[index];
+        const selectedText = selectedOptIndex !== null ? q.options[selectedOptIndex] : null;
+        const isCorrect = selectedText === q.correctAnswer;
+
+        if (isCorrect) {
+            correctCount++;
+        } else {
+            incorrectCount++;
+        }
 
         const reviewDiv = document.createElement('div');
         reviewDiv.className = `review-item ${isCorrect ? 'review-correct' : 'review-incorrect'}`;
         reviewDiv.innerHTML = `
             <strong>Вопрос ${index + 1}:</strong> ${q.q}<br>
-            Ваш ответ: ${selectedOption !== null ? q.options[selectedOption] : '<i>Не отвечено</i>'}<br>
-            ${!isCorrect ? `Правильный ответ: <b>${q.options[q.answer]}</b>` : '<b>Верно!</b>'}
+            Ваш ответ: ${selectedText ? selectedText : '<i>Ответ не выбран</i>'}<br>
+            ${!isCorrect ? `Правильный ответ: <b>${q.correctAnswer}</b>` : '<b>Верно!</b>'}
         `;
         reviewContainer.appendChild(reviewDiv);
     });
 
+    const totalQuestions = currentQuestions.length;
+    const percentage = Math.round((correctCount / totalQuestions) * 100);
+    const isPassed = percentage >= 80;
+
+    // Заполнение статистики
+    document.getElementById('stat-total').innerText = totalQuestions;
+    document.getElementById('stat-correct').innerText = correctCount;
+    document.getElementById('stat-incorrect').innerText = incorrectCount;
+
+    const statusTextElem = document.getElementById('result-status-text');
+    statusTextElem.innerHTML = `<span style="color: ${isPassed ? 'var(--success)' : 'var(--danger)'}">` +
+        `${isPassed ? 'ТЕСТ УСПЕШНО СДАН' : 'ТЕСТ НЕ СДАН'} (${percentage}%)</span>`;
+
     document.getElementById('quiz-screen').classList.remove('active');
     document.getElementById('result-screen').classList.add('active');
-    
-    const percentage = Math.round((score / currentQuestions.length) * 100);
-    document.getElementById('score-text').innerHTML = 
-        `Результат: ${score} из ${currentQuestions.length} (${percentage}%)<br>` +
-        `<span style="color: ${percentage >= 80 ? 'var(--success)' : 'var(--danger)'}">` +
-        `${percentage >= 80 ? 'ТЕСТ УСПЕШНО СДАН' : 'ТЕСТ НЕ СДАН'}</span>`;
 }
 
 function restartTest() {
